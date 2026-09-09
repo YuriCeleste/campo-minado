@@ -3,6 +3,7 @@ local Game = require("game")
 local Board = require("board")
 local Car = require("car")
 local Assets = require("assets")
+local Effects = require("effects")
 
 local Gameplay = {}
 
@@ -32,6 +33,7 @@ function Gameplay.enter()
     carFacing = 1
     phase = "preview"
     phaseTimer = 0
+    Effects.reset()
 
     local availableW = love.graphics.getWidth() - 220
     local availableH = love.graphics.getHeight() - 100
@@ -51,6 +53,13 @@ local function previewAlpha()
     return 0
 end
 
+-- Centro em pixels de um tijolo (linha, coluna), pra posicionar
+-- efeitos visuais.
+local function tileCenter(row, col)
+    return boardOffsetX + (col - 1) * tileSize + tileSize / 2,
+        boardOffsetY + (row - 1) * tileSize + tileSize / 2
+end
+
 function Gameplay.update(dt)
     if phase == "preview" then
         phaseTimer = phaseTimer + dt
@@ -68,6 +77,21 @@ function Gameplay.update(dt)
     end
 
     car:updateAnim(dt)
+    Effects.update(dt)
+
+    -- Dispara o efeito visual (partículas) só quando o carro chega de
+    -- verdade no tijolo, não no instante em que o clique acontece.
+    if not car.eventConsumed and not car:isAnimating() and car.lastEvent then
+        local ex, ey = tileCenter(car.lastEvent.row, car.lastEvent.col)
+        if car.lastEvent.type == "bomb_damage" then
+            Effects.spawnBombDamage(ex, ey)
+        elseif car.lastEvent.type == "bomb_absorbed" then
+            Effects.spawnBombAbsorbed(ex, ey)
+        elseif car.lastEvent.type == "shield_collected" then
+            Effects.spawnShieldCollected(ex, ey)
+        end
+        car.eventConsumed = true
+    end
 
     if gameOver then return end
 
@@ -111,6 +135,10 @@ end
 
 function Gameplay.draw()
     love.graphics.clear(0.1, 0.1, 0.1)
+
+    local shakeX, shakeY = Effects.getShakeOffset()
+    love.graphics.push()
+    love.graphics.translate(shakeX, shakeY)
 
     for row = 1, board.size do
         for col = 1, board.size do
@@ -167,6 +195,10 @@ function Gameplay.draw()
         love.graphics.setColor(0.9, 0.2, 0.2)
         love.graphics.circle("fill", carX + tileSize / 2, carY + tileSize / 2, tileSize / 3)
     end
+
+    Effects.draw()
+
+    love.graphics.pop()
 
     Gameplay.drawHud()
 

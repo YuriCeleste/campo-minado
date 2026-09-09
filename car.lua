@@ -21,6 +21,12 @@ function Car.new(board, maxDamage, maxSkips)
     self.alive = true
     self.finished = false
 
+    -- Último evento de tijolo processado (bomba/escudo), pra quem
+    -- desenha (states/game.lua) saber quando/onde disparar um efeito
+    -- visual. eventConsumed vira true assim que o efeito já foi criado.
+    self.lastEvent = nil
+    self.eventConsumed = true
+
     -- Posição visual (fracionária), separada da posição lógica
     -- (row/col), pra permitir movimento suave sem afetar as regras.
     self.visualRow = self.row
@@ -117,14 +123,11 @@ function Car:moveTo(row, col)
             return false, "sem pulos disponíveis"
         end
         self.skipsLeft = self.skipsLeft - 1
-        -- O tijolo do meio é totalmente ignorado: não é revelado,
-        -- não conta como percorrido e não pode causar dano.
         self:startMoveAnim(row, col)
-        self.row = row
-        self.col = col
-        self.tilesTraveled = self.tilesTraveled + 1
-        self.board:getTile(row, col).visited = true
-        self:checkFinish()
+        -- Só o tijolo do meio é ignorado (nunca revelado, nunca conta
+        -- dano). O tijolo de chegada é processado normalmente — se
+        -- tiver bomba ou escudo, o efeito vale igual.
+        self:enterTile(row, col)
         return true, "pulou"
     end
 
@@ -138,14 +141,17 @@ function Car:enterTile(row, col)
 
     local tile = self.board:getTile(row, col)
     tile.visited = true
+    self.lastEvent = nil
 
     if tile.type == "bomb" then
         self.bombsHit = self.bombsHit + 1
         if self.shields > 0 then
             -- O campo de força absorve o impacto, mas se esgota um pouco.
             self.shields = self.shields - 1
+            self.lastEvent = { type = "bomb_absorbed", row = row, col = col }
         else
             self.damage = self.damage + 1
+            self.lastEvent = { type = "bomb_damage", row = row, col = col }
             if self.damage >= self.maxDamage then
                 self.alive = false
             end
@@ -154,8 +160,11 @@ function Car:enterTile(row, col)
     elseif tile.type == "shield" then
         self.shields = self.shields + 1
         self.maxDamage = self.maxDamage + 1 -- fica mais resistente a cada energia coletada
+        self.lastEvent = { type = "shield_collected", row = row, col = col }
         tile.type = "empty"
     end
+
+    self.eventConsumed = (self.lastEvent == nil)
 
     self:checkFinish()
 end
