@@ -14,6 +14,13 @@ local gameOver = false
 local success = false
 local carFacing = 1 -- 1 = olhando pra direita, -1 = olhando pra esquerda
 
+-- Fase de prévia: mostra os tijolos perigosos por um tempo, depois
+-- some com um fade suave, e só então o jogo (e o tempo) começam.
+local PREVIEW_DURATION = 1.0
+local FADE_DURATION = 1.0
+local phase = "preview" -- "preview" | "fading" | "playing"
+local phaseTimer = 0
+
 function Gameplay.enter()
     local settings = Board.getSettings(Game.difficulty)
     board = Board.new(Game.difficulty)
@@ -23,6 +30,8 @@ function Gameplay.enter()
     gameOver = false
     success = false
     carFacing = 1
+    phase = "preview"
+    phaseTimer = 0
 
     local availableW = love.graphics.getWidth() - 220
     local availableH = love.graphics.getHeight() - 100
@@ -31,7 +40,33 @@ function Gameplay.enter()
     boardOffsetY = 60
 end
 
+-- Opacidade dos ícones de bombas/energia ainda não visitados: 1 durante
+-- a prévia, caindo até 0 durante o fade, 0 no jogo normal.
+local function previewAlpha()
+    if phase == "preview" then
+        return 1
+    elseif phase == "fading" then
+        return 1 - (phaseTimer / FADE_DURATION)
+    end
+    return 0
+end
+
 function Gameplay.update(dt)
+    if phase == "preview" then
+        phaseTimer = phaseTimer + dt
+        if phaseTimer >= PREVIEW_DURATION then
+            phase = "fading"
+            phaseTimer = 0
+        end
+        return
+    elseif phase == "fading" then
+        phaseTimer = phaseTimer + dt
+        if phaseTimer >= FADE_DURATION then
+            phase = "playing"
+        end
+        return
+    end
+
     if gameOver then return end
 
     elapsedTime = elapsedTime + dt
@@ -90,9 +125,9 @@ function Gameplay.draw()
                 Assets.drawFitted("house.png", x, y, tileSize - 2)
             end
 
-            -- Ícones só aparecem em tijolos já revelados (visitados),
-            -- usando "original" pra saber o que tinha ali mesmo depois
-            -- de bomba já ter explodido / energia já ter sido coletada.
+            -- Ícones de tijolos já revelados (visitados), usando
+            -- "original" pra saber o que tinha ali mesmo depois de
+            -- bomba já ter explodido / energia já ter sido coletada.
             if tile.visited and tile.original == "shield" then
                 if not Assets.drawFitted("shield.png", x, y, tileSize - 4) then
                     love.graphics.setColor(1, 0.85, 0.3)
@@ -102,6 +137,21 @@ function Gameplay.draw()
                 if not Assets.drawFitted("bomb.png", x, y, tileSize - 4, { alpha = 0.6 }) then
                     love.graphics.setColor(0.1, 0.1, 0.1, 0.6)
                     love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 4)
+                end
+            elseif not tile.visited and tile.type ~= "empty" then
+                -- Prévia inicial: mostra bombas/energia ainda não
+                -- visitadas, com opacidade que cai até sumir de vez.
+                local alpha = previewAlpha()
+                if alpha > 0.01 then
+                    local icon = tile.type == "bomb" and "bomb.png" or "shield.png"
+                    if not Assets.drawFitted(icon, x, y, tileSize - 4, { alpha = alpha }) then
+                        if tile.type == "bomb" then
+                            love.graphics.setColor(0.1, 0.1, 0.1, alpha)
+                        else
+                            love.graphics.setColor(1, 0.85, 0.3, alpha)
+                        end
+                        love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 4)
+                    end
                 end
             end
         end
@@ -115,6 +165,12 @@ function Gameplay.draw()
     end
 
     Gameplay.drawHud()
+
+    if phase ~= "playing" then
+        love.graphics.setColor(1, 1, 1, math.min(1, previewAlpha() + 0.3))
+        love.graphics.printf("MEMORIZE O CAMINHO...", boardOffsetX, boardOffsetY - 24,
+            board.size * tileSize, "center")
+    end
 
     if gameOver then
         love.graphics.setColor(0, 0, 0, 0.65)
@@ -143,6 +199,7 @@ end
 
 function Gameplay.mousepressed(x, y, button)
     if button ~= 1 then return end
+    if phase ~= "playing" then return end
 
     if gameOver then
         StateManager.switch(require("states.results"))
