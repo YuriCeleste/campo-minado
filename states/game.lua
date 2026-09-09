@@ -2,6 +2,7 @@ local StateManager = require("statemanager")
 local Game = require("game")
 local Board = require("board")
 local Car = require("car")
+local Assets = require("assets")
 
 local Gameplay = {}
 
@@ -11,6 +12,7 @@ local tileSize = 40
 local boardOffsetX, boardOffsetY = 20, 60
 local gameOver = false
 local success = false
+local carFacing = 1 -- 1 = olhando pra direita, -1 = olhando pra esquerda
 
 function Gameplay.enter()
     local settings = Board.getSettings(Game.difficulty)
@@ -20,6 +22,7 @@ function Gameplay.enter()
     elapsedTime = 0
     gameOver = false
     success = false
+    carFacing = 1
 
     local availableW = love.graphics.getWidth() - 220
     local availableH = love.graphics.getHeight() - 100
@@ -75,23 +78,41 @@ function Gameplay.draw()
             local tile = board:getTile(row, col)
             local x = boardOffsetX + (col - 1) * tileSize
             local y = boardOffsetY + (row - 1) * tileSize
+            local isEnd = (row == board.endPos.row and col == board.endPos.col)
 
-            local r, g, b = tileColor(tile, row, col)
-            love.graphics.setColor(r, g, b)
-            love.graphics.rectangle("fill", x, y, tileSize - 2, tileSize - 2)
+            if not isEnd or not Assets.get("house.png") then
+                local r, g, b = tileColor(tile, row, col)
+                love.graphics.setColor(r, g, b)
+                love.graphics.rectangle("fill", x, y, tileSize - 2, tileSize - 2)
+            end
 
-            -- Ícones só aparecem em tijolos já visitados (já resolvidos).
-            if tile.visited and tile.type == "shield" then
-                love.graphics.setColor(1, 0.85, 0.3)
-                love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 5)
+            if isEnd then
+                Assets.drawFitted("house.png", x, y, tileSize - 2)
+            end
+
+            -- Ícones só aparecem em tijolos já revelados (visitados),
+            -- usando "original" pra saber o que tinha ali mesmo depois
+            -- de bomba já ter explodido / energia já ter sido coletada.
+            if tile.visited and tile.original == "shield" then
+                if not Assets.drawFitted("shield.png", x, y, tileSize - 4) then
+                    love.graphics.setColor(1, 0.85, 0.3)
+                    love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 5)
+                end
+            elseif tile.visited and tile.original == "bomb" then
+                if not Assets.drawFitted("bomb.png", x, y, tileSize - 4, { alpha = 0.6 }) then
+                    love.graphics.setColor(0.1, 0.1, 0.1, 0.6)
+                    love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 4)
+                end
             end
         end
     end
 
-    local carX = boardOffsetX + (car.col - 1) * tileSize + tileSize / 2
-    local carY = boardOffsetY + (car.row - 1) * tileSize + tileSize / 2
-    love.graphics.setColor(0.9, 0.2, 0.2)
-    love.graphics.circle("fill", carX, carY, tileSize / 3)
+    local carX = boardOffsetX + (car.col - 1) * tileSize
+    local carY = boardOffsetY + (car.row - 1) * tileSize
+    if not Assets.drawFitted("car_icon.png", carX, carY, tileSize - 2, { flipX = carFacing < 0 }) then
+        love.graphics.setColor(0.9, 0.2, 0.2)
+        love.graphics.circle("fill", carX + tileSize / 2, carY + tileSize / 2, tileSize / 3)
+    end
 
     Gameplay.drawHud()
 
@@ -132,6 +153,11 @@ function Gameplay.mousepressed(x, y, button)
     local row = math.floor((y - boardOffsetY) / tileSize) + 1
 
     if board:isInside(row, col) then
+        if col > car.col then
+            carFacing = 1
+        elseif col < car.col then
+            carFacing = -1
+        end
         car:moveTo(row, col)
     end
 end

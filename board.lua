@@ -1,7 +1,11 @@
 -- Tabuleiro do jogo: representado como uma matriz bidimensional
 -- (array de arrays) em self.tiles[linha][coluna].
--- Cada tijolo tem um "type": "empty" | "bomb" | "shield"
--- e um flag "visited" (se o carrinho já passou por ali).
+-- Cada tijolo tem:
+--   type    ("empty" | "bomb" | "shield") - muda pra "empty" assim que
+--            a bomba explode / a energia é coletada (efeito só acontece 1x)
+--   original (mesmo valor de type na hora do sorteio, nunca muda) -
+--            usado só pra desenhar o ícone certo em tijolo já revelado
+--   visited (bool) - se o carrinho já passou por ali
 
 local Board = {}
 Board.__index = Board
@@ -30,7 +34,7 @@ function Board.new(difficulty)
     for row = 1, size do
         self.tiles[row] = {}
         for col = 1, size do
-            self.tiles[row][col] = { type = "empty", visited = false }
+            self.tiles[row][col] = { type = "empty", original = "empty", visited = false }
         end
     end
 
@@ -69,6 +73,7 @@ function Board:placeRandom(kind, count)
 
         if tile.type == "empty" and not self:isReserved(row, col) then
             tile.type = kind
+            tile.original = kind
             placed = placed + 1
         end
     end

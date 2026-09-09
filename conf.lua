@@ -3,5 +3,5 @@ function love.conf(t)
     t.window.width = 760
     t.window.height = 480
     t.window.resizable = false
-    t.console = false
+    t.console = false -- desligado de novo: já confirmamos que o carregamento de imagens funciona
 end

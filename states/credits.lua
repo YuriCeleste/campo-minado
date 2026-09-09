@@ -1,10 +1,11 @@
 local StateManager = require("statemanager")
+local Assets = require("assets")
 
 local Credits = {}
 
 local authors = {
-    { name = "Dayvson Lacerda Pessoa Filho", link = "github.com/Devs097518" },
-    { name = "Yuri William Ferreira Calixto", link = "github.com/YuriCeleste" },
+    { name = "Dayvson Lacerda Pessoa Filho", link = "github.com/Devs097518", photo = "author_dayvson.png" },
+    { name = "Yuri William Ferreira Calixto", link = "github.com/YuriCeleste", photo = "author_yuri.png" },
 }
 
 local techs = { "Lua", "Love2D" }
@@ -17,12 +18,20 @@ function Credits.draw()
     love.graphics.printf("CREDITS", 0, 15, love.graphics.getWidth(), "center")
 
     local y = 80
+    local photoSize = 44
     for _, author in ipairs(authors) do
+        local hasPhoto = Assets.drawFitted(author.photo, 40, y, photoSize)
+        if not hasPhoto then
+            love.graphics.setColor(0.7, 0.7, 0.7)
+            love.graphics.circle("fill", 40 + photoSize / 2, y + photoSize / 2, photoSize / 2)
+        end
+
+        local textX = 40 + photoSize + 12
         love.graphics.setColor(0.1, 0.1, 0.6)
-        love.graphics.print(author.name, 40, y)
+        love.graphics.print(author.name, textX, y + 4)
         love.graphics.setColor(0.3, 0.3, 0.3)
-        love.graphics.print(author.link, 40, y + 20)
-        y = y + 60
+        love.graphics.print(author.link, textX, y + 24)
+        y = y + photoSize + 20
     end
 
     love.graphics.setColor(0.2, 0.2, 0.7)
