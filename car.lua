@@ -21,6 +21,16 @@ function Car.new(board, maxDamage, maxSkips)
     self.alive = true
     self.finished = false
 
+    -- Posição visual (fracionária), separada da posição lógica
+    -- (row/col), pra permitir movimento suave sem afetar as regras.
+    self.visualRow = self.row
+    self.visualCol = self.col
+    self.animFromRow, self.animFromCol = self.row, self.col
+    self.animToRow, self.animToCol = self.row, self.col
+    self.animElapsed = 0
+    self.animDuration = 0
+    self.moveDurationPerTile = 0.16 -- segundos de deslize por casa de distância
+
     return self
 end
 
@@ -46,6 +56,45 @@ function Car:isTwoAhead(row, col)
     return false
 end
 
+-- Começa o deslize visual da posição atual (mesmo que ainda esteja
+-- animando outro movimento) até (toRow, toCol). A duração é
+-- proporcional à distância, pra pulos de 2 casas durarem mais que
+-- passos de 1 casa.
+function Car:startMoveAnim(toRow, toCol)
+    self.animFromRow = self.visualRow
+    self.animFromCol = self.visualCol
+    self.animToRow = toRow
+    self.animToCol = toCol
+
+    local dRow = toRow - self.animFromRow
+    local dCol = toCol - self.animFromCol
+    local dist = math.sqrt(dRow * dRow + dCol * dCol)
+
+    self.animDuration = math.max(0.08, dist * self.moveDurationPerTile)
+    self.animElapsed = 0
+end
+
+-- Avança a animação do deslize visual. Chamado a cada frame.
+function Car:updateAnim(dt)
+    if self.animElapsed >= self.animDuration then
+        self.visualRow = self.animToRow
+        self.visualCol = self.animToCol
+        return
+    end
+
+    self.animElapsed = math.min(self.animDuration, self.animElapsed + dt)
+    local t = self.animDuration > 0 and (self.animElapsed / self.animDuration) or 1
+    local eased = 1 - (1 - t) ^ 3 -- ease-out cúbico: rápido no início, suave no final
+
+    self.visualRow = self.animFromRow + (self.animToRow - self.animFromRow) * eased
+    self.visualCol = self.animFromCol + (self.animToCol - self.animFromCol) * eased
+end
+
+-- Verdadeiro enquanto o deslize visual ainda não terminou.
+function Car:isAnimating()
+    return self.animElapsed < self.animDuration
+end
+
 -- Tenta mover o carrinho até (row, col). Retorna sucesso (bool) e uma
 -- mensagem descrevendo o que aconteceu.
 function Car:moveTo(row, col)
@@ -57,6 +106,7 @@ function Car:moveTo(row, col)
     end
 
     if self:isAdjacent(row, col) then
+        self:startMoveAnim(row, col)
         self:enterTile(row, col)
         return true, "andou"
     end
@@ -69,6 +119,7 @@ function Car:moveTo(row, col)
         self.skipsLeft = self.skipsLeft - 1
         -- O tijolo do meio é totalmente ignorado: não é revelado,
         -- não conta como percorrido e não pode causar dano.
+        self:startMoveAnim(row, col)
         self.row = row
         self.col = col
         self.tilesTraveled = self.tilesTraveled + 1

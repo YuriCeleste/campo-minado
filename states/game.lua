@@ -67,9 +67,13 @@ function Gameplay.update(dt)
         return
     end
 
+    car:updateAnim(dt)
+
     if gameOver then return end
 
     elapsedTime = elapsedTime + dt
+
+    if car:isAnimating() then return end -- espera o deslize terminar antes de checar fim de jogo
 
     if not car.alive then
         gameOver = true
@@ -157,8 +161,8 @@ function Gameplay.draw()
         end
     end
 
-    local carX = boardOffsetX + (car.col - 1) * tileSize
-    local carY = boardOffsetY + (car.row - 1) * tileSize
+    local carX = boardOffsetX + (car.visualCol - 1) * tileSize
+    local carY = boardOffsetY + (car.visualRow - 1) * tileSize
     if not Assets.drawFitted("car_icon.png", carX, carY, tileSize - 2, { flipX = carFacing < 0 }) then
         love.graphics.setColor(0.9, 0.2, 0.2)
         love.graphics.circle("fill", carX + tileSize / 2, carY + tileSize / 2, tileSize / 3)
