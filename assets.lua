@@ -50,12 +50,13 @@ function Assets.drawFitted(filename, x, y, size, opts)
     local iw, ih = img:getDimensions()
     local scale = size / math.max(iw, ih)
     local flipX = opts.flipX and -1 or 1
+    local rotation = opts.rotation or 0
 
     love.graphics.setColor(1, 1, 1, opts.alpha or 1)
     love.graphics.draw(
         img,
         x + size / 2, y + size / 2,
-        0,
+        rotation,
         scale * flipX, scale,
         iw / 2, ih / 2
     )
