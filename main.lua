@@ -18,6 +18,13 @@ function love.mousepressed(x, y, button)
     StateManager.mousepressed(x, y, button)
 end
 
+-- ADICIONE ESTA FUNÇÃO:
+function love.mousemoved(x, y, dx, dy)
+    if StateManager.mousemoved then
+        StateManager.mousemoved(x, y)
+    end
+end
+
 function love.keypressed(key)
     if key == "escape" then
         love.event.quit()

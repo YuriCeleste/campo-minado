@@ -33,6 +33,13 @@ function StateManager.mousepressed(x, y, button)
     end
 end
 
+-- ADICIONE ESTA FUNÇÃO:
+function StateManager.mousemoved(x, y)
+    if StateManager.current and StateManager.current.mousemoved then
+        StateManager.current.mousemoved(x, y)
+    end
+end
+
 function StateManager.keypressed(key)
     if StateManager.current and StateManager.current.keypressed then
         StateManager.current.keypressed(key)
