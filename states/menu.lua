@@ -29,7 +29,7 @@ function Menu.draw()
 
     love.graphics.clear(0.1, 0.1, 0.1)
 
-    -- 1. IMAGEM DO CARRO
+    -- 1. CAR IMAGE
     local img = Assets.get("menu_car.png")
     if img then
         local iw, ih = img:getDimensions()
@@ -42,7 +42,7 @@ function Menu.draw()
         love.graphics.rectangle("fill", panelW, 0, w - panelW, h)
     end
 
-    -- 2. PAINEL CINZA COM DEGRADÊ (ESCURECIDO)
+    -- 2. GRAY PANEL WITH GRADIENT
     love.graphics.push()
     love.graphics.translate(panelW / 2, h / 2)
     love.graphics.rotate(math.rad(ANGULO))
@@ -54,25 +54,25 @@ function Menu.draw()
         local t = i / larguraPainel
         local c
         if t < 0.7 then
-            c = 0.60 - (i / larguraPainel) * 0.05   -- <-- ESCURECIDO AQUI
+            c = 0.60 - (i / larguraPainel) * 0.05
         else
             local tDegrade = (t - 0.7) / 0.3
-            c = 0.55 * (1 - tDegrade)                -- <-- ESCURECIDO AQUI
+            c = 0.55 * (1 - tDegrade)
         end
         love.graphics.setColor(c, c, c)
         love.graphics.rectangle("fill", -larguraPainel / 2 + i, -altura, 1, altura * 2)
     end
     love.graphics.pop()
 
-    -- 3. FAIXA PRETA DO TÍTULO
+    -- 3. BLACK TITLE BAR
     love.graphics.setColor(0, 0, 0, 0.95)
     love.graphics.rectangle("fill", 0, 0, w, 55)
     love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
     love.graphics.rectangle("fill", 0, 55, w, 1)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("CAMPO MINADO", 0, 18, w, "center")
+    love.graphics.printf("MINESWEEPER", 0, 18, w, "center")
 
-    -- 4. BOTÕES
+    -- 4. BUTTONS
     for _, btn in ipairs(buttons) do
         local isHovered = (hoveredButton == btn)
         local offsetX = isHovered and 8 or 0

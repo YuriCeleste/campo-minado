@@ -130,13 +130,6 @@ end
 function Gameplay.draw()
     love.graphics.clear(0.1, 0.1, 0.1)
 
-    -- DIAGNÓSTICO TEMPORÁRIO
-    -- print("=== DIAGNÓSTICO DE IMAGENS ===")
-    -- print("bomb.png -> " .. tostring(Assets.get("bomb.png")))
-    -- print("shield.png -> " .. tostring(Assets.get("shield.png")))
-    -- print("car_icon.png -> " .. tostring(Assets.get("car_icon.png")))
-    -- print("================================")
-
     local shakeX, shakeY = Effects.getShakeOffset()
     love.graphics.push()
     love.graphics.translate(shakeX, shakeY)
@@ -201,7 +194,7 @@ function Gameplay.draw()
 
     if phase ~= "playing" then
         love.graphics.setColor(1, 1, 1, math.min(1, previewAlpha() + 0.3))
-        love.graphics.printf("MEMORIZE O CAMINHO...", boardOffsetX, boardOffsetY - 24,
+        love.graphics.printf("MEMORIZE THE PATH...", boardOffsetX, boardOffsetY - 24,
             board.size * tileSize, "center")
     end
 
@@ -210,8 +203,8 @@ function Gameplay.draw()
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         love.graphics.setColor(1, 1, 1)
         local msg = success
-            and "VOCÊ CHEGOU! Clique para ver o resultado."
-            or "O CARRO NÃO RESISTIU. Clique para ver o resultado."
+            and "YOU MADE IT! Click to see the results."
+            or "THE CAR DIDN'T SURVIVE. Click to see the results."
         love.graphics.printf(msg, 0, love.graphics.getHeight() / 2 - 10, love.graphics.getWidth(), "center")
     end
 end
@@ -219,15 +212,15 @@ end
 function Gameplay.drawHud()
     local panelX = boardOffsetX + board.size * tileSize + 20
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print(string.format("Tijolos percorridos: %d", car.tilesTraveled), panelX, 60)
-    love.graphics.print(string.format("Resistência: %d / %d", car.maxDamage - car.damage, car.maxDamage), panelX, 85)
-    love.graphics.print(string.format("Escudos: %d", car.shields), panelX, 110)
-    love.graphics.print(string.format("Pulos restantes: %d", car.skipsLeft), panelX, 135)
-    love.graphics.print(string.format("Tempo: %.1fs", elapsedTime), panelX, 160)
-    love.graphics.print("Clique adjacente:", panelX, 200)
-    love.graphics.print("  andar 1 casa", panelX, 218)
-    love.graphics.print("Clique a 2 casas:", panelX, 245)
-    love.graphics.print("  pular tijolo", panelX, 263)
+    love.graphics.print(string.format("Tiles traveled: %d", car.tilesTraveled), panelX, 60)
+    love.graphics.print(string.format("Resistance: %d / %d", car.maxDamage - car.damage, car.maxDamage), panelX, 85)
+    love.graphics.print(string.format("Shields: %d", car.shields), panelX, 110)
+    love.graphics.print(string.format("Jumps left: %d", car.skipsLeft), panelX, 135)
+    love.graphics.print(string.format("Time: %.1fs", elapsedTime), panelX, 160)
+    love.graphics.print("Click adjacent:", panelX, 200)
+    love.graphics.print("  move 1 tile", panelX, 218)
+    love.graphics.print("Click 2 tiles away:", panelX, 245)
+    love.graphics.print("  jump tile", panelX, 263)
 end
 
 function Gameplay.mousepressed(x, y, button)
