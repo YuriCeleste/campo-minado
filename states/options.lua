@@ -125,11 +125,13 @@ end
 function Options.mousepressed(x, y, button)
     if button ~= 1 then return end
 
+    -- Clique no botão voltar
     if x >= 20 and x <= 100 and y >= 15 and y <= 45 then
         StateManager.switch(require("states.menu"))
         return
     end
 
+    -- Clique nos botões de dificuldade
     for _, pos in ipairs(buttonPositions) do
         if x >= pos.x1 and x <= pos.x2 and y >= pos.y1 and y <= pos.y2 then
             selected = pos.id
@@ -137,10 +139,11 @@ function Options.mousepressed(x, y, button)
         end
     end
 
+    -- Clique no botão SUBMIT (agora volta para o menu)
     if submitPosition and x >= submitPosition.x1 and x <= submitPosition.x2
         and y >= submitPosition.y1 and y <= submitPosition.y2 then
         Game.difficulty = selected
-        StateManager.switch(require("states.game"))
+        StateManager.switch(require("states.menu"))  -- volta para o menu
         return
     end
 end

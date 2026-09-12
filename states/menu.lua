@@ -10,7 +10,7 @@ local ANGULO = -8
 
 function Menu.enter()
     buttons = {
-        { label = "PLAY",     y = 80,  action = function() StateManager.switch(require("states.options")) end },
+        { label = "PLAY",     y = 80,  action = function() StateManager.switch(require("states.game")) end },  -- MUDOU
         { label = "OPTIONS",  y = 160, action = function() StateManager.switch(require("states.options")) end },
         { label = "TUTORIAL", y = 240, action = function() StateManager.switch(require("states.tutorial")) end },
         { label = "CREDITS",  y = 320, action = function() StateManager.switch(require("states.credits")) end },
