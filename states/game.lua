@@ -13,14 +13,12 @@ local tileSize = 40
 local boardOffsetX, boardOffsetY = 20, 60
 local gameOver = false
 local success = false
-local carFacing = 1 -- 1 = olhando pra direita, -1 = olhando pra esquerda
+local carFacing = 1
 local carRotation = 0
 
--- Fase de prévia: mostra os tijolos perigosos por um tempo, depois
--- some com um fade suave, e só então o jogo (e o tempo) começam.
 local PREVIEW_DURATION = 1.0
 local FADE_DURATION = 1.0
-local phase = "preview" -- "preview" | "fading" | "playing"
+local phase = "preview"
 local phaseTimer = 0
 
 function Gameplay.enter()
@@ -44,8 +42,6 @@ function Gameplay.enter()
     boardOffsetY = 60
 end
 
--- Opacidade dos ícones de bombas/energia ainda não visitados: 1 durante
--- a prévia, caindo até 0 durante o fade, 0 no jogo normal.
 local function previewAlpha()
     if phase == "preview" then
         return 1
@@ -55,8 +51,6 @@ local function previewAlpha()
     return 0
 end
 
--- Centro em pixels de um tijolo (linha, coluna), pra posicionar
--- efeitos visuais.
 local function tileCenter(row, col)
     return boardOffsetX + (col - 1) * tileSize + tileSize / 2,
         boardOffsetY + (row - 1) * tileSize + tileSize / 2
@@ -81,8 +75,6 @@ function Gameplay.update(dt)
     car:updateAnim(dt)
     Effects.update(dt)
 
-    -- Dispara o efeito visual (partículas) só quando o carro chega de
-    -- verdade no tijolo, não no instante em que o clique acontece.
     if not car.eventConsumed and not car:isAnimating() and car.lastEvent then
         local ex, ey = tileCenter(car.lastEvent.row, car.lastEvent.col)
         if car.lastEvent.type == "bomb_damage" then
@@ -99,7 +91,7 @@ function Gameplay.update(dt)
 
     elapsedTime = elapsedTime + dt
 
-    if car:isAnimating() then return end -- espera o deslize terminar antes de checar fim de jogo
+    if car:isAnimating() then return end
 
     if not car.alive then
         gameOver = true
@@ -138,6 +130,13 @@ end
 function Gameplay.draw()
     love.graphics.clear(0.1, 0.1, 0.1)
 
+    -- DIAGNÓSTICO TEMPORÁRIO
+    print("=== DIAGNÓSTICO DE IMAGENS ===")
+    print("bomb.png -> " .. tostring(Assets.get("bomb.png")))
+    print("shield.png -> " .. tostring(Assets.get("shield.png")))
+    print("car_icon.png -> " .. tostring(Assets.get("car_icon.png")))
+    print("================================")
+
     local shakeX, shakeY = Effects.getShakeOffset()
     love.graphics.push()
     love.graphics.translate(shakeX, shakeY)
@@ -159,9 +158,6 @@ function Gameplay.draw()
                 Assets.drawFitted("house.png", x, y, tileSize - 2)
             end
 
-            -- Ícones de tijolos já revelados (visitados), usando
-            -- "original" pra saber o que tinha ali mesmo depois de
-            -- bomba já ter explodido / energia já ter sido coletada.
             if tile.visited and tile.original == "shield" then
                 if not Assets.drawFitted("shield.png", x, y, tileSize - 4) then
                     love.graphics.setColor(1, 0.85, 0.3)
@@ -173,8 +169,6 @@ function Gameplay.draw()
                     love.graphics.circle("fill", x + tileSize / 2, y + tileSize / 2, tileSize / 4)
                 end
             elseif not tile.visited and tile.type ~= "empty" then
-                -- Prévia inicial: mostra bombas/energia ainda não
-                -- visitadas, com opacidade que cai até sumir de vez.
                 local alpha = previewAlpha()
                 if alpha > 0.01 then
                     local icon = tile.type == "bomb" and "bomb.png" or "shield.png"

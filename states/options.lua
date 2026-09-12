@@ -3,66 +3,197 @@ local Game = require("game")
 local Board = require("board")
 
 local Options = {}
+
 local difficulties = { "easy", "medium", "hard" }
 local selected = "medium"
 
+-- Controle de hover
+local hoveredDiff = nil
+local hoveredBack = false
+local hoveredSubmit = false
+
+-- Posições dos botões (calculadas no draw, usadas no mousepressed)
+local buttonPositions = {}
+local submitPosition = nil
+
 function Options.enter()
     selected = Game.difficulty or "medium"
+    hoveredDiff = nil
+    hoveredBack = false
+    hoveredSubmit = false
+    buttonPositions = {}
+    submitPosition = nil
 end
 
 function Options.draw()
-    love.graphics.clear(0.9, 0.9, 0.9)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.printf("OPTIONS", 0, 20, love.graphics.getWidth(), "center")
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
 
-    local startX = 60
+    -- Fundo cinza escuro
+    love.graphics.clear(0.1, 0.1, 0.1)
+
+    -- =========================================================
+    -- FAIXA PRETA DO TÍTULO
+    -- =========================================================
+    love.graphics.setColor(0, 0, 0, 0.95)
+    love.graphics.rectangle("fill", 0, 0, w, 55)
+
+    love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
+    love.graphics.rectangle("fill", 0, 55, w, 1)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("OPTIONS", 0, 18, w, "center")
+
+    -- =========================================================
+    -- BOTÕES DE DIFICULDADE
+    -- =========================================================
+    local btnW, btnH = 180, 50
+    local spacing = 40
+    local totalW = #difficulties * btnW + (#difficulties - 1) * spacing
+    local startX = (w - totalW) / 2
+    local btnY = 120
+
+    buttonPositions = {}
+
     for i, diff in ipairs(difficulties) do
-        local x = startX + (i - 1) * 220
-        if diff == selected then
-            love.graphics.setColor(0.2, 0.5, 0.9)
-        else
-            love.graphics.setColor(0.3, 0.3, 0.3)
-        end
-        love.graphics.rectangle("fill", x, 80, 180, 40)
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.printf(diff:upper(), x, 92, 180, "center")
+        local x = startX + (i - 1) * (btnW + spacing)
+        local isSelected = (selected == diff)
+        local isHovered = (hoveredDiff == diff)
 
+        -- Cor do botão
+        local r, g, b
+        if isSelected then
+            r, g, b = 0.2, 0.5, 0.9   -- azul quando selecionado
+        elseif isHovered then
+            r, g, b = 0.35, 0.35, 0.35 -- cinza claro no hover
+        else
+            r, g, b = 0.2, 0.2, 0.2    -- cinza escuro normal
+        end
+
+        -- Sombra
+        love.graphics.setColor(0, 0, 0, 0.3)
+        love.graphics.rectangle("fill", x + 2, btnY + 3, btnW, btnH, 6)
+
+        -- Fundo do botão
+        love.graphics.setColor(r, g, b)
+        love.graphics.rectangle("fill", x, btnY, btnW, btnH, 6)
+
+        -- Borda
+        local borda = isSelected and 1.0 or (isHovered and 0.8 or 0.4)
+        love.graphics.setColor(borda, borda, borda)
+        love.graphics.rectangle("line", x, btnY, btnW, btnH, 6)
+
+        -- Texto do botão
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.printf(diff:upper(), x, btnY + 16, btnW, "center")
+
+        -- Descrição abaixo do botão
         local settings = Board.getSettings(diff)
-        love.graphics.setColor(0.2, 0.2, 0.2)
-        love.graphics.printf(settings.size .. "x" .. settings.size, x, 125, 180, "center")
+        love.graphics.setColor(0.7, 0.7, 0.7)
+        love.graphics.printf(settings.size .. "x" .. settings.size, x, btnY + btnH + 8, btnW, "center")
+
+        -- Guarda a posição para detecção de clique
+        table.insert(buttonPositions, {
+            id = diff,
+            x1 = x, y1 = btnY,
+            x2 = x + btnW, y2 = btnY + btnH
+        })
     end
 
-    love.graphics.setColor(0.15, 0.6, 0.15)
-    love.graphics.rectangle("fill", love.graphics.getWidth() / 2 - 100, 190, 200, 40)
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("SUBMIT", love.graphics.getWidth() / 2 - 100, 202, 200, "center")
+    -- =========================================================
+    -- BOTÃO SUBMIT
+    -- =========================================================
+    local submitW, submitH = 200, 50
+    local submitX = (w - submitW) / 2
+    local submitY = 280
 
-    love.graphics.setColor(0.1, 0.1, 0.1)
-    love.graphics.rectangle("fill", 10, 10, 40, 30)
+    local isSubmitHovered = hoveredSubmit
+
+    -- Sombra
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.rectangle("fill", submitX + 2, submitY + 3, submitW, submitH, 6)
+
+    -- Fundo do botão
+    local sr, sg, sb = isSubmitHovered and 0.3 or 0.2, isSubmitHovered and 0.7 or 0.6, isSubmitHovered and 0.3 or 0.2
+    love.graphics.setColor(sr, sg, sb)
+    love.graphics.rectangle("fill", submitX, submitY, submitW, submitH, 6)
+
+    -- Borda
+    love.graphics.setColor(0.5, 1.0, 0.5)
+    love.graphics.rectangle("line", submitX, submitY, submitW, submitH, 6)
+
+    -- Texto
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("<-", 10, 17, 40, "center")
+    love.graphics.printf("SUBMIT", submitX, submitY + 16, submitW, "center")
+
+    submitPosition = {
+        x1 = submitX, y1 = submitY,
+        x2 = submitX + submitW, y2 = submitY + submitH
+    }
+
+    -- =========================================================
+    -- BOTÃO VOLTAR
+    -- =========================================================
+    local backX, backY, backW, backH = 20, 15, 80, 30
+    local isBackHovered = hoveredBack
+
+    love.graphics.setColor(isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2)
+    love.graphics.rectangle("fill", backX, backY, backW, backH, 4)
+
+    love.graphics.setColor(isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5)
+    love.graphics.rectangle("line", backX, backY, backW, backH, 4)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.printf("< VOLTAR", backX, backY + 7, backW, "center")
 end
 
 function Options.mousepressed(x, y, button)
     if button ~= 1 then return end
 
-    if x >= 10 and x <= 50 and y >= 10 and y <= 40 then
+    -- Clique no botão voltar
+    if x >= 20 and x <= 100 and y >= 15 and y <= 45 then
         StateManager.switch(require("states.menu"))
         return
     end
 
-    local startX = 60
-    for i, diff in ipairs(difficulties) do
-        local bx = startX + (i - 1) * 220
-        if x >= bx and x <= bx + 180 and y >= 80 and y <= 120 then
-            selected = diff
+    -- Clique nos botões de dificuldade
+    for _, pos in ipairs(buttonPositions) do
+        if x >= pos.x1 and x <= pos.x2 and y >= pos.y1 and y <= pos.y2 then
+            selected = pos.id
+            return
         end
     end
 
-    local submitX = love.graphics.getWidth() / 2 - 100
-    if x >= submitX and x <= submitX + 200 and y >= 190 and y <= 230 then
+    -- Clique no botão SUBMIT
+    if submitPosition and x >= submitPosition.x1 and x <= submitPosition.x2
+        and y >= submitPosition.y1 and y <= submitPosition.y2 then
         Game.difficulty = selected
         StateManager.switch(require("states.game"))
+        return
+    end
+end
+
+function Options.mousemoved(x, y)
+    -- Hover no botão voltar
+    hoveredBack = (x >= 20 and x <= 100 and y >= 15 and y <= 45)
+
+    -- Hover nos botões de dificuldade
+    hoveredDiff = nil
+    for _, pos in ipairs(buttonPositions) do
+        if x >= pos.x1 and x <= pos.x2 and y >= pos.y1 and y <= pos.y2 then
+            hoveredDiff = pos.id
+            break
+        end
+    end
+
+    -- Hover no botão SUBMIT
+    hoveredSubmit = submitPosition
+        and x >= submitPosition.x1 and x <= submitPosition.x2
+        and y >= submitPosition.y1 and y <= submitPosition.y2
+end
+
+function Options.keypressed(key)
+    if key == "escape" then
+        StateManager.switch(require("states.menu"))
     end
 end
 
