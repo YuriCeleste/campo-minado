@@ -131,11 +131,11 @@ function Gameplay.draw()
     love.graphics.clear(0.1, 0.1, 0.1)
 
     -- DIAGNÓSTICO TEMPORÁRIO
-    print("=== DIAGNÓSTICO DE IMAGENS ===")
-    print("bomb.png -> " .. tostring(Assets.get("bomb.png")))
-    print("shield.png -> " .. tostring(Assets.get("shield.png")))
-    print("car_icon.png -> " .. tostring(Assets.get("car_icon.png")))
-    print("================================")
+    -- print("=== DIAGNÓSTICO DE IMAGENS ===")
+    -- print("bomb.png -> " .. tostring(Assets.get("bomb.png")))
+    -- print("shield.png -> " .. tostring(Assets.get("shield.png")))
+    -- print("car_icon.png -> " .. tostring(Assets.get("car_icon.png")))
+    -- print("================================")
 
     local shakeX, shakeY = Effects.getShakeOffset()
     love.graphics.push()

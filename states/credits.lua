@@ -47,7 +47,7 @@ function Credits.draw()
 
     for _, author in ipairs(authors) do
         local img = Assets.get(author.photo)
-        print("Tentando carregar: " .. author.photo .. " -> " .. tostring(img))
+        -- print("Tentando carregar: " .. author.photo .. " -> " .. tostring(img))
 
         if img then
             -- Desenha a foto recortada em círculo
