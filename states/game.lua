@@ -14,6 +14,7 @@ local boardOffsetX, boardOffsetY = 20, 60
 local gameOver = false
 local success = false
 local carFacing = 1 -- 1 = olhando pra direita, -1 = olhando pra esquerda
+local carRotation = 0
 
 -- Fase de prévia: mostra os tijolos perigosos por um tempo, depois
 -- some com um fade suave, e só então o jogo (e o tempo) começam.
@@ -31,6 +32,7 @@ function Gameplay.enter()
     gameOver = false
     success = false
     carFacing = 1
+    carRotation = 0
     phase = "preview"
     phaseTimer = 0
     Effects.reset()
@@ -191,7 +193,8 @@ function Gameplay.draw()
 
     local carX = boardOffsetX + (car.visualCol - 1) * tileSize
     local carY = boardOffsetY + (car.visualRow - 1) * tileSize
-    if not Assets.drawFitted("car_icon.png", carX, carY, tileSize - 2, { flipX = carFacing < 0 }) then
+    if not Assets.drawFitted("car_icon.png", carX, carY, tileSize - 2,
+        { flipX = carFacing < 0, rotation = carRotation }) then
         love.graphics.setColor(0.9, 0.2, 0.2)
         love.graphics.circle("fill", carX + tileSize / 2, carY + tileSize / 2, tileSize / 3)
     end
@@ -248,8 +251,15 @@ function Gameplay.mousepressed(x, y, button)
     if board:isInside(row, col) then
         if col > car.col then
             carFacing = 1
+            carRotation = 0
         elseif col < car.col then
             carFacing = -1
+            carRotation = 0
+        end
+        if row > car.row then
+            carRotation = math.pi / 2
+        elseif row < car.row then
+            carRotation = -math.pi / 2
         end
         car:moveTo(row, col)
     end
