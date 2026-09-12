@@ -1,5 +1,6 @@
 local StateManager = require("statemanager")
 local Assets = require("assets")
+local Game = require("game")
 
 local Credits = {}
 
@@ -22,16 +23,17 @@ function Credits.enter()
 end
 
 function Credits.draw()
+    local t = Game.themes[Game.theme]
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
 
-    love.graphics.clear(0.1, 0.1, 0.1)
+    love.graphics.clear(t.background)
 
     -- BLACK TITLE BAR
-    love.graphics.setColor(0, 0, 0, 0.95)
+    love.graphics.setColor(t.titleBar)
     love.graphics.rectangle("fill", 0, 0, w, 55)
-    love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
+    love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.titleText)
     love.graphics.printf("CREDITS", 0, 18, w, "center")
 
     -- AUTHORS
@@ -60,17 +62,17 @@ function Credits.draw()
 
             love.graphics.setStencilTest()
 
-            love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
+            love.graphics.setColor(t.textDim)
             love.graphics.circle("line", cx, cy, raio)
         else
             love.graphics.setColor(0.4, 0.4, 0.4)
             love.graphics.circle("fill", marginX + photoSize / 2, y + photoSize / 2, photoSize / 2)
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(t.text)
             love.graphics.printf(string.sub(author.name, 1, 1), marginX, y + 18, photoSize, "center")
         end
 
         local textX = marginX + photoSize + 20
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(t.text)
         love.graphics.print(author.name, textX, y + 8)
 
         local linkY = y + 34
@@ -100,12 +102,12 @@ function Credits.draw()
 
     -- TECHNOLOGIES
     y = y + 20
-    love.graphics.setColor(0.8, 0.8, 0.8)
+    love.graphics.setColor(t.text)
     love.graphics.print("Technologies used:", marginX, y)
 
     y = y + 30
     for _, tech in ipairs(techs) do
-        love.graphics.setColor(0.6, 0.6, 0.6)
+        love.graphics.setColor(t.textDim)
         love.graphics.print("• " .. tech, marginX + 20, y)
         y = y + 22
     end
@@ -114,11 +116,11 @@ function Credits.draw()
     local btnX, btnY, btnW, btnH = 20, 15, 80, 30
     local isBackHovered = hoveredBack
 
-    love.graphics.setColor(isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2)
+    love.graphics.setColor(isBackHovered and t.buttonHover or t.buttonBg)
     love.graphics.rectangle("fill", btnX, btnY, btnW, btnH, 4)
-    love.graphics.setColor(isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5)
+    love.graphics.setColor(isBackHovered and 0.9 or t.buttonBorder[1], isBackHovered and 0.9 or t.buttonBorder[2], isBackHovered and 0.9 or t.buttonBorder[3])
     love.graphics.rectangle("line", btnX, btnY, btnW, btnH, 4)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.text)
     love.graphics.printf("< BACK", btnX, btnY + 7, btnW, "center")
 end
 

@@ -10,17 +10,18 @@ function Results.enter()
 end
 
 function Results.draw()
+    local t = Game.themes[Game.theme]
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     local stats = Game.stats or {}
 
-    love.graphics.clear(0.1, 0.1, 0.1)
+    love.graphics.clear(t.background)
 
     -- BLACK TITLE BAR
-    love.graphics.setColor(0, 0, 0, 0.95)
+    love.graphics.setColor(t.titleBar)
     love.graphics.rectangle("fill", 0, 0, w, 55)
-    love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
+    love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.titleText)
     love.graphics.printf("STATISTICS", 0, 18, w, "center")
 
     -- SUCCESS / FAILURE MESSAGE
@@ -36,7 +37,7 @@ function Results.draw()
     local startY = 150
     local lineHeight = 30
 
-    love.graphics.setColor(0.9, 0.9, 0.9)
+    love.graphics.setColor(t.text)
     love.graphics.printf(string.format("Total time: %.1fs", stats.time or 0), 0, startY, w, "center")
     love.graphics.printf(string.format("Bombs hit: %d", stats.bombsHit or 0), 0, startY + lineHeight, w, "center")
     love.graphics.printf(string.format("Tiles traveled: %d", stats.tilesTraveled or 0), 0, startY + lineHeight * 2, w, "center")
@@ -50,20 +51,15 @@ function Results.draw()
     love.graphics.setColor(0, 0, 0, 0.3)
     love.graphics.rectangle("fill", btnX + 2, btnY + 3, btnW, btnH, 6)
 
-    local r, g, b
-    if isHovered then
-        r, g, b = 0.35, 0.35, 0.35
-    else
-        r, g, b = 0.2, 0.2, 0.2
-    end
-    love.graphics.setColor(r, g, b)
+    local corFundo = isHovered and t.buttonHover or t.buttonBg
+    love.graphics.setColor(corFundo)
     love.graphics.rectangle("fill", btnX, btnY, btnW, btnH, 6)
 
-    local borda = isHovered and 0.9 or 0.5
+    local borda = isHovered and 0.9 or t.buttonBorder[1]
     love.graphics.setColor(borda, borda, borda)
     love.graphics.rectangle("line", btnX, btnY, btnW, btnH, 6)
 
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.text)
     love.graphics.printf("MENU", btnX, btnY + 16, btnW, "center")
 end
 

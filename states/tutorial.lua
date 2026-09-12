@@ -1,5 +1,6 @@
 local StateManager = require("statemanager")
 local Assets = require("assets")
+local Game = require("game")
 
 local Tutorial = {}
 
@@ -27,9 +28,10 @@ function Tutorial.enter()
 end
 
 function Tutorial.draw()
+    local t = Game.themes[Game.theme]
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
 
-    love.graphics.clear(0.1, 0.1, 0.1)
+    love.graphics.clear(t.background)
 
     -- BOMB IMAGE AS WATERMARK
     local bombImg = Assets.get("bomb.png")
@@ -43,11 +45,11 @@ function Tutorial.draw()
     end
 
     -- BLACK TITLE BAR
-    love.graphics.setColor(0, 0, 0, 0.95)
+    love.graphics.setColor(t.titleBar)
     love.graphics.rectangle("fill", 0, 0, w, 55)
-    love.graphics.setColor(0.6, 0.6, 0.6, 0.5)
+    love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.titleText)
     love.graphics.printf("TUTORIAL", 0, 18, w, "center")
 
     -- TEXT
@@ -62,7 +64,7 @@ function Tutorial.draw()
             love.graphics.setColor(1, 0.85, 0.3)
             love.graphics.print(line, marginX, startY + (i - 1) * lineHeight)
         else
-            love.graphics.setColor(0.9, 0.9, 0.9)
+            love.graphics.setColor(t.text)
             love.graphics.print(line, marginX, startY + (i - 1) * lineHeight)
         end
     end
@@ -71,11 +73,11 @@ function Tutorial.draw()
     local btnX, btnY, btnW, btnH = 20, 15, 80, 30
     local isBackHovered = hoveredBack
 
-    love.graphics.setColor(isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2, isBackHovered and 0.35 or 0.2)
+    love.graphics.setColor(isBackHovered and t.buttonHover or t.buttonBg)
     love.graphics.rectangle("fill", btnX, btnY, btnW, btnH, 4)
-    love.graphics.setColor(isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5, isBackHovered and 0.9 or 0.5)
+    love.graphics.setColor(isBackHovered and 0.9 or t.buttonBorder[1], isBackHovered and 0.9 or t.buttonBorder[2], isBackHovered and 0.9 or t.buttonBorder[3])
     love.graphics.rectangle("line", btnX, btnY, btnW, btnH, 4)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(t.text)
     love.graphics.printf("< BACK", btnX, btnY + 7, btnW, "center")
 end
 

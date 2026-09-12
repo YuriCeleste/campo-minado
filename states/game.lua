@@ -21,6 +21,7 @@ local FADE_DURATION = 1.0
 local phase = "preview"
 local phaseTimer = 0
 
+
 function Gameplay.enter()
     local settings = Board.getSettings(Game.difficulty)
     board = Board.new(Game.difficulty)
@@ -251,5 +252,6 @@ function Gameplay.mousepressed(x, y, button)
         car:moveTo(row, col)
     end
 end
+
 
 return Gameplay
