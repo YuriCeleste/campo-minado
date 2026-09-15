@@ -4,6 +4,7 @@ local Board = require("board")
 local Car = require("car")
 local Assets = require("assets")
 local Effects = require("effects")
+local Fonts = require("fonts")
 
 local Gameplay = {}
 
@@ -129,7 +130,8 @@ local function tileColor(tile, row, col)
 end
 
 function Gameplay.draw()
-    love.graphics.clear(0.1, 0.1, 0.1)
+    local t = Game.themes[Game.theme]
+    love.graphics.clear(t.background)
 
     local shakeX, shakeY = Effects.getShakeOffset()
     love.graphics.push()
@@ -145,11 +147,11 @@ function Gameplay.draw()
             if not isEnd or not Assets.get("house.png") then
                 local r, g, b = tileColor(tile, row, col)
                 love.graphics.setColor(r, g, b)
-                love.graphics.rectangle("fill", x, y, tileSize - 2, tileSize - 2)
+                love.graphics.rectangle("fill", x, y, tileSize, tileSize)
             end
 
             if isEnd then
-                Assets.drawFitted("house.png", x, y, tileSize - 2)
+                Assets.drawFitted("house.png", x, y, tileSize)
             end
 
             if tile.visited and tile.original == "shield" then
@@ -194,34 +196,99 @@ function Gameplay.draw()
     Gameplay.drawHud()
 
     if phase ~= "playing" then
-        love.graphics.setColor(1, 1, 1, math.min(1, previewAlpha() + 0.3))
-        love.graphics.printf("MEMORIZE THE PATH...", boardOffsetX, boardOffsetY - 24,
+        love.graphics.setColor(t.text[1], t.text[2], t.text[3], math.min(1, previewAlpha() + 0.3))
+        love.graphics.setFont(Fonts.subhead)
+        love.graphics.printf("MEMORIZE THE PATH...", boardOffsetX, boardOffsetY - 34,
             board.size * tileSize, "center")
     end
 
     if gameOver then
-        love.graphics.setColor(0, 0, 0, 0.65)
+        love.graphics.setColor(0, 0, 0, 0.7)
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-        love.graphics.setColor(1, 1, 1)
-        local msg = success
-            and "YOU MADE IT! Click to see the results."
-            or "THE CAR DIDN'T SURVIVE. Click to see the results."
-        love.graphics.printf(msg, 0, love.graphics.getHeight() / 2 - 10, love.graphics.getWidth(), "center")
+
+        local resultColor = success and t.success or t.danger
+        local panelW, panelH = 460, 130
+        local panelX = (love.graphics.getWidth() - panelW) / 2
+        local panelY = (love.graphics.getHeight() - panelH) / 2
+
+        love.graphics.setColor(0, 0, 0, 0.35)
+        love.graphics.rectangle("fill", panelX + 3, panelY + 4, panelW, panelH, 10)
+        love.graphics.setColor(t.panel)
+        love.graphics.rectangle("fill", panelX, panelY, panelW, panelH, 10)
+        love.graphics.setColor(resultColor)
+        love.graphics.setLineWidth(3)
+        love.graphics.rectangle("line", panelX, panelY, panelW, panelH, 10)
+
+        love.graphics.setFont(Fonts.heading)
+        local msg = success and "YOU MADE IT!" or "THE CAR DIDN'T SURVIVE"
+        love.graphics.printf(msg, panelX, panelY + 30, panelW, "center")
+
+        love.graphics.setColor(t.textDim)
+        love.graphics.setFont(Fonts.small)
+        love.graphics.printf("Click to see the results", panelX, panelY + 80, panelW, "center")
     end
 end
 
 function Gameplay.drawHud()
+    local t = Game.themes[Game.theme]
     local panelX = boardOffsetX + board.size * tileSize + 20
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print(string.format("Tiles traveled: %d", car.tilesTraveled), panelX, 60)
-    love.graphics.print(string.format("Resistance: %d / %d", car.maxDamage - car.damage, car.maxDamage), panelX, 85)
-    love.graphics.print(string.format("Shields: %d", car.shields), panelX, 110)
-    love.graphics.print(string.format("Jumps left: %d", car.skipsLeft), panelX, 135)
-    love.graphics.print(string.format("Time: %.1fs", elapsedTime), panelX, 160)
-    love.graphics.print("Click adjacent:", panelX, 200)
-    love.graphics.print("  move 1 tile", panelX, 218)
-    love.graphics.print("Click 2 tiles away:", panelX, 245)
-    love.graphics.print("  jump tile", panelX, 263)
+    local panelW = 220
+
+    local resistanceLeft = car.maxDamage - car.damage
+    local resistanceColor = resistanceLeft <= 1 and t.danger or (resistanceLeft <= 2 and t.warning or t.success)
+
+    local stats = {
+        { label = "TILES TRAVELED", value = tostring(car.tilesTraveled), color = t.text },
+        { label = "RESISTANCE",     value = resistanceLeft .. " / " .. car.maxDamage, color = resistanceColor },
+        { label = "SHIELDS",        value = tostring(car.shields), color = t.warning },
+        { label = "JUMPS LEFT",     value = tostring(car.skipsLeft), color = t.accent },
+        { label = "TIME",           value = string.format("%.1fs", elapsedTime), color = t.text },
+    }
+
+    local rowH = 46
+    local panelH = #stats * rowH + 16
+    local panelY = 60
+
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.rectangle("fill", panelX + 2, panelY + 3, panelW, panelH, 8)
+    love.graphics.setColor(t.panel)
+    love.graphics.rectangle("fill", panelX, panelY, panelW, panelH, 8)
+    love.graphics.setColor(t.buttonBorder)
+    love.graphics.rectangle("line", panelX, panelY, panelW, panelH, 8)
+
+    local y = panelY + 10
+    for _, stat in ipairs(stats) do
+        love.graphics.setColor(t.textDim)
+        love.graphics.setFont(Fonts.small)
+        love.graphics.print(stat.label, panelX + 16, y)
+
+        love.graphics.setColor(stat.color)
+        love.graphics.setFont(Fonts.mono)
+        love.graphics.printf(stat.value, panelX, y + 15, panelW - 16, "right")
+
+        y = y + rowH
+    end
+
+    -- Cartão de ajuda dos controles
+    local helpY = panelY + panelH + 16
+    local helpH = 90
+    love.graphics.setColor(0, 0, 0, 0.3)
+    love.graphics.rectangle("fill", panelX + 2, helpY + 3, panelW, helpH, 8)
+    love.graphics.setColor(t.panelLight)
+    love.graphics.rectangle("fill", panelX, helpY, panelW, helpH, 8)
+    love.graphics.setColor(t.buttonBorder)
+    love.graphics.rectangle("line", panelX, helpY, panelW, helpH, 8)
+
+    love.graphics.setFont(Fonts.small)
+    love.graphics.setColor(t.accent)
+    love.graphics.print("Click adjacent", panelX + 16, helpY + 12)
+    love.graphics.setColor(t.textDim)
+    love.graphics.print("move 1 tile", panelX + 16, helpY + 30)
+
+    love.graphics.setColor(t.accent)
+    love.graphics.print("Click 2 tiles away", panelX + 16, helpY + 54)
+    love.graphics.setColor(t.textDim)
+    love.graphics.print("jump tile", panelX + 16, helpY + 72)
 end
 
 function Gameplay.mousepressed(x, y, button)

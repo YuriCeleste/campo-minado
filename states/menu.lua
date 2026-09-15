@@ -1,6 +1,7 @@
 local StateManager = require("statemanager")
 local Assets = require("assets")
 local Game = require("game")
+local Fonts = require("fonts")
 
 local Menu = {}
 local buttons = {}
@@ -81,9 +82,11 @@ function Menu.draw()
     love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
     love.graphics.setColor(t.titleText)
-    love.graphics.printf("MINESWEEPER", 0, 18, w, "center")
+    love.graphics.setFont(Fonts.title)
+    love.graphics.printf("MINESWEEPER", 0, (55 - Fonts.title:getHeight()) / 2, w, "center")
 
     -- 4. BUTTONS
+    love.graphics.setFont(Fonts.body)
     for _, btn in ipairs(buttons) do
         local isHovered = (hoveredButton == btn)
         local offsetX = isHovered and 8 or 0

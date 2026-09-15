@@ -1,7 +1,7 @@
 function love.conf(t)
-    t.title = "Campo Minado"
-    t.window.width = 760
-    t.window.height = 480
+    t.title = "Minesweeper"
+    t.window.width = 960
+    t.window.height = 600
     t.window.resizable = false
     t.console = false -- desligado de novo: já confirmamos que o carregamento de imagens funciona
 end

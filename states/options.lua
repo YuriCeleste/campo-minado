@@ -1,6 +1,7 @@
 local StateManager = require("statemanager")
 local Game = require("game")
 local Board = require("board")
+local Fonts = require("fonts")
 
 local Options = {}
 
@@ -43,19 +44,21 @@ function Options.draw()
     love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
     love.graphics.setColor(t.titleText)
-    love.graphics.printf("OPTIONS", 0, 18, w, "center")
+    love.graphics.setFont(Fonts.heading)
+    love.graphics.printf("OPTIONS", 0, (55 - Fonts.heading:getHeight()) / 2, w, "center")
 
     -- =====================================================
     -- SEÇÃO 1: DIFICULDADE
     -- =====================================================
     love.graphics.setColor(t.text)
-    love.graphics.printf("DIFFICULTY", 0, 80, w, "center")
+    love.graphics.setFont(Fonts.subhead)
+    love.graphics.printf("DIFFICULTY", 0, 68, w, "center")
 
-    local btnW, btnH = 180, 50
-    local spacing = 40
+    local btnW, btnH = 100, 100
+    local spacing = 30
     local totalW = #difficulties * btnW + (#difficulties - 1) * spacing
     local startX = (w - totalW) / 2
-    local diffY = 110
+    local diffY = 95
 
     diffPositions = {}
 
@@ -84,11 +87,13 @@ function Options.draw()
         love.graphics.rectangle("line", x, diffY, btnW, btnH, 6)
 
         love.graphics.setColor(t.text)
-        love.graphics.printf(diff:upper(), x, diffY + 16, btnW, "center")
+        love.graphics.setFont(Fonts.body)
+        love.graphics.printf(diff:upper(), x, diffY + 28, btnW, "center")
 
         local settings = Board.getSettings(diff)
-        love.graphics.setColor(t.textDim)
-        love.graphics.printf(settings.size .. "x" .. settings.size, x, diffY + btnH + 6, btnW, "center")
+        love.graphics.setColor(isSelected and t.text or t.textDim)
+        love.graphics.setFont(Fonts.small)
+        love.graphics.printf(settings.size .. "x" .. settings.size, x, diffY + 60, btnW, "center")
 
         table.insert(diffPositions, {
             id = diff,
@@ -100,14 +105,15 @@ function Options.draw()
     -- =====================================================
     -- SEÇÃO 2: TEMA
     -- =====================================================
-    local themeY = 230
+    local themeY = 245
     love.graphics.setColor(t.text)
+    love.graphics.setFont(Fonts.subhead)
     love.graphics.printf("THEME", 0, themeY - 30, w, "center")
 
     themePositions = {}
 
-    local themeBtnW, themeBtnH = 180, 50
-    local themeSpacing = 40
+    local themeBtnW, themeBtnH = 100, 100
+    local themeSpacing = 30
     local themeTotalW = #themes * themeBtnW + (#themes - 1) * themeSpacing
     local themeStartX = (w - themeTotalW) / 2
 
@@ -136,7 +142,8 @@ function Options.draw()
         love.graphics.rectangle("line", x, themeY, themeBtnW, themeBtnH, 6)
 
         love.graphics.setColor(t.text)
-        love.graphics.printf(theme:upper(), x, themeY + 16, themeBtnW, "center")
+        love.graphics.setFont(Fonts.body)
+        love.graphics.printf(theme:upper(), x, themeY + (themeBtnH - Fonts.body:getHeight()) / 2, themeBtnW, "center")
 
         table.insert(themePositions, {
             id = theme,
@@ -150,7 +157,7 @@ function Options.draw()
     -- =====================================================
     local submitW, submitH = 200, 50
     local submitX = (w - submitW) / 2
-    local submitY = 330
+    local submitY = 365
 
     local isSubmitHovered = hoveredSubmit
 
@@ -165,6 +172,7 @@ function Options.draw()
     love.graphics.rectangle("line", submitX, submitY, submitW, submitH, 6)
 
     love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(Fonts.body)
     love.graphics.printf("SUBMIT", submitX, submitY + 16, submitW, "center")
 
     submitPosition = {
@@ -185,6 +193,7 @@ function Options.draw()
     love.graphics.rectangle("line", backX, backY, backW, backH, 4)
 
     love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(Fonts.small)
     love.graphics.printf("< BACK", backX, backY + 7, backW, "center")
 end
 

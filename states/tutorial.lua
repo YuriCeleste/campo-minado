@@ -1,26 +1,34 @@
 local StateManager = require("statemanager")
 local Assets = require("assets")
 local Game = require("game")
+local Fonts = require("fonts")
 
 local Tutorial = {}
 
 local hoveredBack = false
 
+local COLORS = {
+    move   = { 0.45, 0.65, 1.0 },
+    danger = { 1.0, 0.4, 0.4 },
+    energy = { 1.0, 0.85, 0.3 },
+    goal   = { 0.4, 0.9, 0.5 },
+}
+
 local lines = {
-    "Click a NEIGHBORING tile to move to it.",
-    "Click a tile 2 TILES away to JUMP",
-    "  over the middle tile (useful if you suspect a bomb).",
-    "",
-    "Tiles with BOMBS damage the car.",
-    "If damage reaches the limit, the game ends.",
-    "",
-    "ENERGY tiles give a shield: the next bomb",
-    "impact causes no damage, and the car becomes more resistant.",
-    "",
-    "You have a LIMITED number of jumps per game.",
-    "The HUD shows how many are left.",
-    "",
-    "Reach the house to win the challenge!",
+    { text = "Click a NEIGHBORING tile to move to it.", color = "move" },
+    { text = "Click a tile 2 TILES away to JUMP", color = "move" },
+    { text = "  over the middle tile (useful if you suspect a bomb).", color = "move" },
+    { text = "" },
+    { text = "Tiles with BOMBS damage the car.", color = "danger" },
+    { text = "If damage reaches the limit, the game ends.", color = "danger" },
+    { text = "" },
+    { text = "ENERGY tiles give a shield: the next bomb", color = "energy" },
+    { text = "impact causes no damage, and the car becomes more resistant.", color = "energy" },
+    { text = "" },
+    { text = "You have a LIMITED number of jumps per game.", color = "move" },
+    { text = "The HUD shows how many are left.", color = "move" },
+    { text = "" },
+    { text = "Reach the house to win the challenge!", color = "goal" },
 }
 
 function Tutorial.enter()
@@ -50,22 +58,20 @@ function Tutorial.draw()
     love.graphics.setColor(t.textDim)
     love.graphics.rectangle("fill", 0, 55, w, 1)
     love.graphics.setColor(t.titleText)
-    love.graphics.printf("TUTORIAL", 0, 18, w, "center")
+    love.graphics.setFont(Fonts.heading)
+    love.graphics.printf("TUTORIAL", 0, (55 - Fonts.heading:getHeight()) / 2, w, "center")
 
     -- TEXT
     local marginX = 80
     local startY = 90
-    local lineHeight = 24
+    local lineHeight = 25
 
+    love.graphics.setFont(Fonts.body)
     for i, line in ipairs(lines) do
-        if line == "" then
-            -- skip
-        elseif string.find(line, "Reach the house") then
-            love.graphics.setColor(1, 0.85, 0.3)
-            love.graphics.print(line, marginX, startY + (i - 1) * lineHeight)
-        else
-            love.graphics.setColor(t.text)
-            love.graphics.print(line, marginX, startY + (i - 1) * lineHeight)
+        if line.text ~= "" then
+            local c = line.color and COLORS[line.color] or t.text
+            love.graphics.setColor(c[1], c[2], c[3])
+            love.graphics.print(line.text, marginX, startY + (i - 1) * lineHeight)
         end
     end
 
@@ -78,6 +84,7 @@ function Tutorial.draw()
     love.graphics.setColor(isBackHovered and 0.9 or t.buttonBorder[1], isBackHovered and 0.9 or t.buttonBorder[2], isBackHovered and 0.9 or t.buttonBorder[3])
     love.graphics.rectangle("line", btnX, btnY, btnW, btnH, 4)
     love.graphics.setColor(t.text)
+    love.graphics.setFont(Fonts.small)
     love.graphics.printf("< BACK", btnX, btnY + 7, btnW, "center")
 end
 
